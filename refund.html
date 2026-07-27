@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Refund Policy | Bremer Core</title>
+<meta name="description" content="How refunds work for FileTwin and PhotoChecker purchases." />
+<script>
+  (function () {
+    var saved = localStorage.getItem("bremercore-theme");
+    if (saved === "dark" || saved === "light") {
+      document.documentElement.setAttribute("data-theme", saved);
+    }
+  })();
+</script>
+<style>
+  :root {
+    --ink: #1C2A2E; --ink-soft: #526268; --paper: #ECEEE7; --paper-raised: #F5F6F1;
+    --rule: #D3D6CC; --copper: #B5652D; --copper-soft: #D98F52; --steel: #4B6A78; --rose: #A8546B;
+    --accent: var(--copper);
+    --font-display: Georgia, "Iowan Old Style", "Times New Roman", serif;
+    --font-body: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    --font-mono: "SF Mono", "Cascadia Code", Consolas, "Courier New", monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink: #E9EDE9; --ink-soft: #9FB0AC; --paper: #14201F; --paper-raised: #1B2928;
+      --rule: #2C3B38; --copper: #D98F52; --copper-soft: #B5652D; --steel: #6E97A6; --rose: #C87D96;
+      --accent: var(--copper);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ink: #E9EDE9; --ink-soft: #9FB0AC; --paper: #14201F; --paper-raised: #1B2928;
+    --rule: #2C3B38; --copper: #D98F52; --copper-soft: #B5652D; --steel: #6E97A6; --rose: #C87D96;
+  }
+  :root[data-theme="light"] {
+    --ink: #1C2A2E; --ink-soft: #526268; --paper: #ECEEE7; --paper-raised: #F5F6F1;
+    --rule: #D3D6CC; --copper: #B5652D; --copper-soft: #D98F52; --steel: #4B6A78; --rose: #A8546B;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink); font-family: var(--font-body);
+    font-size: 17px; line-height: 1.55; -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  h1, h2 { font-family: var(--font-display); font-weight: 400; text-wrap: balance; margin: 0; }
+  .eyebrow {
+    font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--ink-soft);
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 28px; }
+  .prose { max-width: 68ch; }
+
+  header.site { padding: 28px 0 22px; border-bottom: 1px solid var(--rule); }
+  header.site .wrap { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .wordmark { font-family: var(--font-display); font-size: 21px; }
+  .wordmark strong { color: var(--copper); font-weight: 400; }
+  .wordmark a { color: inherit; text-decoration: none; }
+  .header-right { display: flex; align-items: center; gap: 22px; }
+  nav.site-links { display: flex; gap: 22px; font-family: var(--font-mono); font-size: 13px; letter-spacing: 0.03em; }
+  nav.site-links a { color: var(--ink-soft); text-decoration: none; }
+  nav.site-links a:hover { color: var(--accent); }
+  .theme-toggle {
+    font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase;
+    color: var(--ink-soft); background: transparent; border: 1px solid var(--rule); border-radius: 3px;
+    padding: 5px 10px; cursor: pointer; line-height: 1;
+  }
+  .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+
+  main { padding: 56px 0 72px; }
+  .doc-head { padding-bottom: 34px; border-bottom: 1px solid var(--rule); margin-bottom: 40px; }
+  .doc-head h1 { font-size: clamp(30px, 4vw, 40px); margin-top: 10px; }
+  .doc-head .updated { margin-top: 14px; font-family: var(--font-mono); font-size: 13px; color: var(--ink-soft); }
+
+  section.clause { margin-bottom: 34px; }
+  section.clause h2 { font-size: 20px; font-family: var(--font-body); font-weight: 600; margin-bottom: 12px; }
+  section.clause p { color: var(--ink-soft); margin: 0 0 12px; }
+  section.clause p:last-child { margin-bottom: 0; }
+  section.clause ul { margin: 0 0 12px; padding-left: 22px; color: var(--ink-soft); }
+  section.clause li { margin-bottom: 6px; }
+  section.clause strong { color: var(--ink); font-weight: 600; }
+  .callout {
+    border: 1px dashed var(--rule); border-radius: 4px; padding: 16px 20px; font-size: 15px;
+    color: var(--ink-soft); margin-top: 14px;
+  }
+
+  footer.site { border-top: 1px solid var(--rule); padding: 34px 0 44px; }
+  footer.site .wrap { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+  footer.site p { margin: 0; color: var(--ink-soft); font-size: 14px; }
+  footer.site a { color: var(--ink-soft); }
+  .legal-links { display: flex; gap: 16px; font-family: var(--font-mono); font-size: 13px; }
+  .legal-links a.current, .legal-links a:hover { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap">
+    <div class="wordmark"><a href="index.html">Bremer <strong>Core</strong></a></div>
+    <div class="header-right">
+      <nav class="site-links">
+        <a href="filetwin.html">FileTwin</a>
+        <a href="photochecker.html">PhotoChecker</a>
+      </nav>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Switch to dark theme"></button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap prose">
+    <div class="doc-head">
+      <p class="eyebrow">Bremer Core</p>
+      <h1>Refund Policy</h1>
+      <p class="updated">Last updated: 27 July 2026</p>
+    </div>
+
+    <section class="clause">
+      <h2>14-day guarantee</h2>
+      <p>Both FileTwin and PhotoChecker offer a generous free tier, so you can try either app fully — every detection feature, no time limit — before you buy. If a license still doesn't work out for you, we offer a <strong>14-day, no-questions-asked refund</strong> from the date of purchase.</p>
+      <p class="callout">Flagged for Werner: 14 days is a placeholder — adjust to whatever window you settle on before this page goes live.</p>
+    </section>
+
+    <section class="clause">
+      <h2>How to request one</h2>
+      <p>Email <a href="mailto:hello@bremercore.com">hello@bremercore.com</a> with the email address you used at checkout. We'll confirm the purchase and process the refund through Lemon Squeezy, our payment processor — it's returned to your original payment method, and typically shows up within a few business days depending on your bank or card issuer.</p>
+    </section>
+
+    <section class="clause">
+      <h2>What happens to your license</h2>
+      <p>Once a refund is processed, the associated license key is deactivated on all devices. The app keeps working under the free tier — 20 files or photos per scan, unlimited scans — exactly as it did before you purchased.</p>
+    </section>
+
+    <section class="clause">
+      <h2>Contact</h2>
+      <p>Questions about a purchase or refund: <a href="mailto:hello@bremercore.com">hello@bremercore.com</a></p>
+    </section>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <p>Bremer Core</p>
+    <nav class="legal-links">
+      <a href="privacy.html">Privacy</a>
+      <a href="terms.html">Terms</a>
+      <a href="refund.html" class="current">Refunds</a>
+    </nav>
+    <p><a href="mailto:hello@bremercore.com">hello@bremercore.com</a></p>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    var root = document.documentElement;
+    var btn = document.getElementById("theme-toggle");
+    function effectiveTheme() {
+      var attr = root.getAttribute("data-theme");
+      if (attr === "dark" || attr === "light") return attr;
+      return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    }
+    function render() {
+      var current = effectiveTheme();
+      var next = current === "dark" ? "Light" : "Dark";
+      btn.textContent = next;
+      btn.setAttribute("aria-label", "Switch to " + next.toLowerCase() + " theme");
+    }
+    btn.addEventListener("click", function () {
+      var next = effectiveTheme() === "dark" ? "light" : "dark";
+      root.setAttribute("data-theme", next);
+      localStorage.setItem("bremercore-theme", next);
+      render();
+    });
+    render();
+  })();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PhotoChecker — every photo, checked | Bremer Core</title>
+<meta name="description" content="PhotoChecker finds duplicate and near-duplicate photos, flags blurry shots, and checks for red-eye — with an optional AI second opinion." />
+<script>
+  // Runs before first paint to avoid a flash of the wrong theme. Only sets
+  // data-theme when the visitor has made an explicit choice — otherwise the
+  // page follows the OS/browser prefers-color-scheme setting untouched.
+  (function () {
+    var saved = localStorage.getItem("bremercore-theme");
+    if (saved === "dark" || saved === "light") {
+      document.documentElement.setAttribute("data-theme", saved);
+    }
+  })();
+</script>
+<style>
+  :root {
+    --ink: #1C2A2E; --ink-soft: #526268; --paper: #ECEEE7; --paper-raised: #F5F6F1;
+    --rule: #D3D6CC; --copper: #B5652D; --copper-soft: #D98F52; --steel: #4B6A78; --rose: #A8546B;
+    --accent: var(--rose);
+    --font-display: Georgia, "Iowan Old Style", "Times New Roman", serif;
+    --font-body: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    --font-mono: "SF Mono", "Cascadia Code", Consolas, "Courier New", monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink: #E9EDE9; --ink-soft: #9FB0AC; --paper: #14201F; --paper-raised: #1B2928;
+      --rule: #2C3B38; --copper: #D98F52; --copper-soft: #B5652D; --steel: #6E97A6; --rose: #C87D96;
+      --accent: var(--rose);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ink: #E9EDE9; --ink-soft: #9FB0AC; --paper: #14201F; --paper-raised: #1B2928;
+    --rule: #2C3B38; --copper: #D98F52; --copper-soft: #B5652D; --steel: #6E97A6; --rose: #C87D96;
+  }
+  :root[data-theme="light"] {
+    --ink: #1C2A2E; --ink-soft: #526268; --paper: #ECEEE7; --paper-raised: #F5F6F1;
+    --rule: #D3D6CC; --copper: #B5652D; --copper-soft: #D98F52; --steel: #4B6A78; --rose: #A8546B;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink); font-family: var(--font-body);
+    font-size: 17px; line-height: 1.55; -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); }
+  a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 3px;
+  }
+  h1, h2, h3 { font-family: var(--font-display); font-weight: 400; text-wrap: balance; margin: 0; }
+  .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  .eyebrow {
+    font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--ink-soft);
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 28px; }
+
+  header.site { padding: 28px 0 22px; border-bottom: 1px solid var(--rule); }
+  header.site .wrap { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .wordmark { font-family: var(--font-display); font-size: 21px; }
+  .wordmark strong { color: var(--copper); font-weight: 400; }
+  .wordmark a { color: inherit; text-decoration: none; }
+  .header-right { display: flex; align-items: center; gap: 22px; }
+  nav.site-links { display: flex; gap: 22px; font-family: var(--font-mono); font-size: 13px; letter-spacing: 0.03em; }
+  nav.site-links a { color: var(--ink-soft); text-decoration: none; }
+  nav.site-links a.current, nav.site-links a:hover { color: var(--accent); }
+  .theme-toggle {
+    font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase;
+    color: var(--ink-soft); background: transparent; border: 1px solid var(--rule); border-radius: 3px;
+    padding: 5px 10px; cursor: pointer; line-height: 1;
+  }
+  .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+
+  .hero { padding: 70px 0 52px; display: grid; grid-template-columns: auto 1fr; gap: 30px; align-items: start; }
+  .twin-mark-lg { position: relative; width: 84px; height: 84px; flex-shrink: 0; color: var(--accent); }
+  .twin-mark-lg::before, .twin-mark-lg::after {
+    content: ""; position: absolute; inset: 0; border-radius: 18px; border: 2px solid currentColor;
+  }
+  .twin-mark-lg::before { transform: translate(-9px, -9px); opacity: 0.35; }
+  .twin-mark-lg::after { transform: translate(9px, 9px); background: var(--paper); }
+  .hero h1 { font-size: clamp(32px, 4.6vw, 46px); }
+  .hero .lede { margin-top: 16px; max-width: 54ch; font-size: 18.5px; color: var(--ink-soft); }
+  @media (max-width: 640px) { .hero { grid-template-columns: 1fr; } }
+
+  .cta-row { margin-top: 26px; display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
+  .btn {
+    display: inline-block; font-family: var(--font-mono); font-size: 14px; letter-spacing: 0.03em;
+    padding: 12px 20px; border-radius: 3px; text-decoration: none; border: 1px solid transparent;
+  }
+  .btn-primary { background: var(--accent); color: var(--paper); }
+  .btn-secondary { border-color: var(--rule); color: var(--ink); }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+  section { padding: 56px 0; border-top: 1px solid var(--rule); }
+  .section-heading { display: flex; align-items: baseline; gap: 14px; margin-bottom: 30px; }
+  .section-heading h2 { font-size: 24px; }
+  .section-heading .rule { flex: 1; height: 1px; background: var(--rule); }
+
+  .ledger { display: grid; gap: 0; border-top: 1px solid var(--rule); }
+  .ledger-row {
+    display: grid; grid-template-columns: 64px 1fr; gap: 20px; padding: 22px 0; border-bottom: 1px solid var(--rule);
+  }
+  .ledger-row .num { font-family: var(--font-mono); font-size: 13px; color: var(--accent); padding-top: 3px; }
+  .ledger-row h3 { font-size: 19px; font-family: var(--font-body); font-weight: 600; margin-bottom: 6px; }
+  .ledger-row p { margin: 0; color: var(--ink-soft); max-width: 60ch; }
+  .ledger-row .footnote { display: block; margin-top: 8px; font-size: 13.5px; color: var(--ink-soft); font-style: italic; }
+
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid var(--rule); border-radius: 4px; overflow: hidden; }
+  .compare > div { padding: 26px 26px 28px; }
+  .compare .free { background: var(--paper-raised); border-right: 1px solid var(--rule); }
+  .compare .licensed { background: var(--paper-raised); }
+  .compare h3 { font-size: 15px; font-family: var(--font-mono); letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 16px; }
+  .compare .licensed h3 { color: var(--accent); }
+  .compare ul { margin: 0; padding: 0; list-style: none; }
+  .compare li { padding: 7px 0; color: var(--ink-soft); }
+  .compare .licensed li { color: var(--ink); }
+  @media (max-width: 640px) { .compare { grid-template-columns: 1fr; } .compare .free { border-right: none; border-bottom: 1px solid var(--rule); } }
+
+  .tiers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .tier { border: 1px solid var(--rule); border-radius: 4px; padding: 20px; background: var(--paper-raised); }
+  .tier .tier-name { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
+  .tier p { margin: 0; color: var(--ink-soft); font-size: 15px; }
+  @media (max-width: 720px) { .tiers { grid-template-columns: 1fr; } }
+
+  .pricing-note {
+    border: 1px dashed var(--rule); border-radius: 4px; padding: 22px 24px; color: var(--ink-soft);
+    font-size: 15px; max-width: 60ch;
+  }
+  .pricing-note strong { color: var(--ink); }
+
+  form.suggestion { max-width: 640px; }
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 6px; }
+  .field input, .field textarea, .field select {
+    width: 100%; font: inherit; font-size: 15.5px; padding: 10px 12px; background: var(--paper-raised);
+    border: 1px solid var(--rule); border-radius: 3px; color: var(--ink);
+  }
+  .field textarea { min-height: 110px; resize: vertical; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 560px) { .field-row { grid-template-columns: 1fr; } }
+  .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+  .form-note { font-size: 13.5px; color: var(--ink-soft); margin-top: 4px; }
+  #suggestion-status { margin-top: 14px; font-size: 14.5px; }
+  #suggestion-status[data-state="ok"] { color: var(--accent); }
+  #suggestion-status[data-state="error"] { color: var(--steel); }
+
+  footer.site { border-top: 1px solid var(--rule); padding: 34px 0 44px; }
+  footer.site .wrap { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+  footer.site p { margin: 0; color: var(--ink-soft); font-size: 14px; }
+  footer.site a { color: var(--ink-soft); }
+  .legal-links { display: flex; gap: 16px; font-family: var(--font-mono); font-size: 13px; }
+  .legal-links a:hover { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap">
+    <div class="wordmark"><a href="index.html">Bremer <strong>Core</strong></a></div>
+    <div class="header-right">
+      <nav class="site-links">
+        <a href="filetwin.html">FileTwin</a>
+        <a href="photochecker.html" class="current">PhotoChecker</a>
+      </nav>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Switch to dark theme"></button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <section class="hero" style="border-top:none;">
+      <div class="twin-mark-lg"></div>
+      <div>
+        <p class="eyebrow">PhotoChecker — photo library checker</p>
+        <h1>Every photo, checked.</h1>
+        <p class="lede">PhotoChecker goes through a photo library and finds what's worth removing: exact duplicates, near-identical re-saves, blurry shots, and flash red-eye — each with a recommendation, never an automatic deletion.</p>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="mailto:hello@bremercore.com?subject=Notify%20me%20when%20PhotoChecker%20launches">Get notified at launch</a>
+          <a class="btn btn-secondary" href="#suggest">Suggest a feature</a>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-heading"><h2>What it finds</h2><span class="rule"></span></div>
+      <div class="ledger">
+        <div class="ledger-row">
+          <div class="num">01</div>
+          <div>
+            <h3>Exact &amp; similar duplicates</h3>
+            <p>Byte-for-byte duplicates are matched with certainty. Visually similar photos — the same shot taken moments apart, or a resized/re-exported copy — are matched with perceptual hashing, so near-identical photos are grouped even when their files differ.</p>
+          </div>
+        </div>
+        <div class="ledger-row">
+          <div class="num">02</div>
+          <div>
+            <h3>Low quality</h3>
+            <p>Standalone blurry or soft photos are flagged on their own, scored by sharpness, so you can clear out the shots that never should have made the cut.</p>
+          </div>
+        </div>
+        <div class="ledger-row">
+          <div class="num">03</div>
+          <div>
+            <h3>Red-eye</h3>
+            <p>Faces and eyes are checked directly for flash red-eye.
+              <span class="footnote">A heuristic check runs by default; an optional Cloud AI tier can re-examine flagged photos for a more accurate second opinion.</span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-heading"><h2>Recommendations, three ways</h2><span class="rule"></span></div>
+      <div class="tiers">
+        <div class="tier">
+          <div class="tier-name">Smart Auto-Select</div>
+          <p>Free, built in. Picks the sharpest, most likely original from each group using deterministic rules — no setup, works offline.</p>
+        </div>
+        <div class="tier">
+          <div class="tier-name">Local AI</div>
+          <p>Free after a one-time download. Runs entirely on your own machine via Ollama for smarter, plain-English recommendations — private, still works offline.</p>
+        </div>
+        <div class="tier">
+          <div class="tier-name">Cloud AI</div>
+          <p>Bring your own Anthropic API key, or use Bremer Core's metered option once available. The most capable tier, including the red-eye second opinion.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-heading"><h2>Free to try, honestly</h2><span class="rule"></span></div>
+      <div class="compare">
+        <div class="free">
+          <h3>Without a license</h3>
+          <ul>
+            <li>Full duplicate, quality &amp; red-eye detection</li>
+            <li>Up to 20 photos per scan</li>
+            <li>Unlimited number of scans</li>
+            <li>Recycle Bin removal included</li>
+          </ul>
+        </div>
+        <div class="licensed">
+          <h3>Licensed</h3>
+          <ul>
+            <li>Everything in the free tier</li>
+            <li>No photo-count limit per scan</li>
+            <li>Use on up to 2 devices, move anytime</li>
+            <li>One-time purchase, not a subscription</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-heading"><h2>Pricing</h2><span class="rule"></span></div>
+      <p class="pricing-note"><strong>Pricing is being finalized ahead of launch.</strong> PhotoChecker will be a one-time purchase — no subscription. Leave your email above and we'll let you know the moment it's live.</p>
+    </section>
+
+    <section id="suggest">
+      <div class="section-heading"><h2>Have an idea for PhotoChecker?</h2><span class="rule"></span></div>
+      <p style="color:var(--ink-soft); max-width:60ch; margin-top:-14px; margin-bottom:26px;">Tell us what would make PhotoChecker more useful to you. If we build your idea, we'll pay you for it — leave an email if you'd like the chance.</p>
+      <form class="suggestion" id="suggestion-form">
+        <div class="field-row">
+          <div class="field">
+            <label for="name">Name (optional)</label>
+            <input type="text" id="name" name="name" autocomplete="name" />
+          </div>
+          <div class="field">
+            <label for="email">Email (optional)</label>
+            <input type="email" id="email" name="email" autocomplete="email" />
+          </div>
+        </div>
+        <div class="field">
+          <label for="suggestion">Your suggestion</label>
+          <textarea id="suggestion" name="suggestion" required></textarea>
+        </div>
+        <div class="field hp" aria-hidden="true">
+          <label for="website">Leave blank</label>
+          <input type="text" id="website" name="website" tabindex="-1" autocomplete="off" />
+        </div>
+        <button class="btn btn-primary" type="submit">Send suggestion</button>
+        <p class="form-note">We read every one. No spam, ever.</p>
+        <p id="suggestion-status" role="status"></p>
+      </form>
+    </section>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <p>Bremer Core</p>
+    <nav class="legal-links">
+      <a href="privacy.html">Privacy</a>
+      <a href="terms.html">Terms</a>
+      <a href="refund.html">Refunds</a>
+    </nav>
+    <p><a href="mailto:hello@bremercore.com">hello@bremercore.com</a></p>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    var root = document.documentElement;
+    var btn = document.getElementById("theme-toggle");
+
+    function effectiveTheme() {
+      var attr = root.getAttribute("data-theme");
+      if (attr === "dark" || attr === "light") return attr;
+      return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    }
+    function render() {
+      var current = effectiveTheme();
+      var next = current === "dark" ? "Light" : "Dark";
+      btn.textContent = next;
+      btn.setAttribute("aria-label", "Switch to " + next.toLowerCase() + " theme");
+    }
+    btn.addEventListener("click", function () {
+      var next = effectiveTheme() === "dark" ? "light" : "dark";
+      root.setAttribute("data-theme", next);
+      localStorage.setItem("bremercore-theme", next);
+      render();
+    });
+    render();
+  })();
+</script>
+
+<script>
+  // TODO: replace with the deployed license_backend URL before going live.
+  const API_BASE_URL = "http://localhost:8000";
+
+  const form = document.getElementById("suggestion-form");
+  const status = document.getElementById("suggestion-status");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const submitBtn = form.querySelector("button[type=submit]");
+    submitBtn.disabled = true;
+    status.removeAttribute("data-state");
+    status.textContent = "Sending…";
+
+    const payload = {
+      suggestion: form.suggestion.value.trim(),
+      name: form.name.value.trim() || null,
+      email: form.email.value.trim() || null,
+      product: "photochecker",
+      website: form.website.value, // honeypot — left empty by real visitors
+    };
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/suggestions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        status.dataset.state = "ok";
+        status.textContent = data.message || "Thanks for the suggestion!";
+        form.reset();
+      } else {
+        status.dataset.state = "error";
+        status.textContent = data.message || "Something went wrong — please try again.";
+      }
+    } catch (err) {
+      status.dataset.state = "error";
+      status.textContent = "Could not reach the server — please try again shortly.";
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+</script>
+
+</body>
+</html>

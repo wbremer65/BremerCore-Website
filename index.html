@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bremer Core — small, precise tools for a tidier digital life</title>
+<meta name="description" content="Bremer Core builds FileTwin and PhotoChecker — small desktop tools that find duplicate files and photos, so you can decide what to keep." />
+<script>
+  // Runs before first paint to avoid a flash of the wrong theme. Only sets
+  // data-theme when the visitor has made an explicit choice — otherwise the
+  // page follows the OS/browser prefers-color-scheme setting untouched.
+  (function () {
+    var saved = localStorage.getItem("bremercore-theme");
+    if (saved === "dark" || saved === "light") {
+      document.documentElement.setAttribute("data-theme", saved);
+    }
+  })();
+</script>
+<style>
+  :root {
+    --ink: #1C2A2E;
+    --ink-soft: #526268;
+    --paper: #ECEEE7;
+    --paper-raised: #F5F6F1;
+    --rule: #D3D6CC;
+    --copper: #B5652D;
+    --copper-soft: #D98F52;
+    --steel: #4B6A78;
+    --rose: #A8546B;
+
+    --font-display: Georgia, "Iowan Old Style", "Times New Roman", serif;
+    --font-body: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    --font-mono: "SF Mono", "Cascadia Code", Consolas, "Courier New", monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink: #E9EDE9;
+      --ink-soft: #9FB0AC;
+      --paper: #14201F;
+      --paper-raised: #1B2928;
+      --rule: #2C3B38;
+      --copper: #D98F52;
+      --copper-soft: #B5652D;
+      --steel: #6E97A6;
+      --rose: #C87D96;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ink: #E9EDE9; --ink-soft: #9FB0AC; --paper: #14201F; --paper-raised: #1B2928;
+    --rule: #2C3B38; --copper: #D98F52; --copper-soft: #B5652D; --steel: #6E97A6; --rose: #C87D96;
+  }
+  :root[data-theme="light"] {
+    --ink: #1C2A2E; --ink-soft: #526268; --paper: #ECEEE7; --paper-raised: #F5F6F1;
+    --rule: #D3D6CC; --copper: #B5652D; --copper-soft: #D98F52; --steel: #4B6A78; --rose: #A8546B;
+  }
+
+  * { box-sizing: border-box; }
+  html { text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 17px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--copper); }
+  a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible {
+    outline: 2px solid var(--copper);
+    outline-offset: 3px;
+  }
+  h1, h2, h3 { font-family: var(--font-display); font-weight: 400; text-wrap: balance; margin: 0; }
+  .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 28px; }
+
+  header.site {
+    padding: 28px 0 22px;
+    border-bottom: 1px solid var(--rule);
+  }
+  header.site .wrap { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .wordmark { font-family: var(--font-display); font-size: 21px; letter-spacing: 0.01em; }
+  .wordmark strong { color: var(--copper); font-weight: 400; }
+  .header-right { display: flex; align-items: center; gap: 22px; }
+  nav.site-links { display: flex; gap: 22px; font-family: var(--font-mono); font-size: 13px; letter-spacing: 0.03em; }
+  nav.site-links a { color: var(--ink-soft); text-decoration: none; }
+  nav.site-links a:hover { color: var(--copper); }
+  .theme-toggle {
+    font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase;
+    color: var(--ink-soft); background: transparent; border: 1px solid var(--rule); border-radius: 3px;
+    padding: 5px 10px; cursor: pointer; line-height: 1;
+  }
+  .theme-toggle:hover { border-color: var(--copper); color: var(--copper); }
+
+  .hero { padding: 84px 0 64px; }
+  .hero h1 { font-size: clamp(34px, 5vw, 52px); max-width: 15ch; }
+  .hero .lede {
+    margin-top: 22px;
+    max-width: 56ch;
+    font-size: 19px;
+    color: var(--ink-soft);
+  }
+
+  .catalog { padding: 8px 0 72px; }
+  .catalog-heading { display: flex; align-items: baseline; gap: 14px; margin-bottom: 28px; }
+  .catalog-heading .rule { flex: 1; height: 1px; background: var(--rule); }
+
+  .entries { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+
+  .entry {
+    position: relative;
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 30px 28px 28px;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    transition: border-color 0.15s ease, transform 0.15s ease;
+  }
+  .entry:hover { border-color: var(--copper); transform: translateY(-2px); }
+
+  .twin-mark { position: relative; width: 46px; height: 46px; margin-bottom: 22px; }
+  .twin-mark::before, .twin-mark::after {
+    content: ""; position: absolute; inset: 0; border-radius: 11px; border: 1.5px solid currentColor;
+  }
+  .twin-mark::before { transform: translate(-5px, -5px); opacity: 0.35; }
+  .twin-mark::after { transform: translate(5px, 5px); background: var(--paper-raised); }
+  .entry.filetwin .twin-mark { color: var(--steel); }
+  .entry.photochecker .twin-mark { color: var(--rose); }
+
+  .entry h2 { font-size: 25px; margin-bottom: 6px; }
+  .entry .tag {
+    font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--ink-soft); margin-bottom: 14px; display: block;
+  }
+  .entry p.pitch { color: var(--ink-soft); margin: 0 0 18px; max-width: 42ch; }
+  .entry .goto { font-family: var(--font-mono); font-size: 13.5px; color: var(--copper); }
+  .entry.filetwin .goto { color: var(--steel); }
+  .entry.photochecker .goto { color: var(--rose); }
+
+  .principle {
+    padding: 8px 0 76px;
+    display: grid;
+    grid-template-columns: minmax(0,1fr) minmax(0,2fr);
+    gap: 32px;
+    border-top: 1px solid var(--rule);
+    padding-top: 56px;
+  }
+  .principle h2 { font-size: 26px; max-width: 12ch; }
+  .principle p { color: var(--ink-soft); max-width: 58ch; margin: 0 0 14px; }
+  @media (max-width: 720px) { .principle { grid-template-columns: 1fr; } }
+
+  footer.site { border-top: 1px solid var(--rule); padding: 34px 0 44px; }
+  footer.site .wrap { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+  footer.site p { margin: 0; color: var(--ink-soft); font-size: 14px; }
+  footer.site a { color: var(--ink-soft); }
+  .legal-links { display: flex; gap: 16px; font-family: var(--font-mono); font-size: 13px; }
+  .legal-links a:hover { color: var(--copper); }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap">
+    <div class="wordmark">Bremer <strong>Core</strong></div>
+    <div class="header-right">
+      <nav class="site-links">
+        <a href="filetwin.html">FileTwin</a>
+        <a href="photochecker.html">PhotoChecker</a>
+      </nav>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Switch to dark theme"></button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <p class="eyebrow">Bremer Core — desktop utilities</p>
+      <h1>Small tools that find what shouldn't still be there.</h1>
+      <p class="lede">We build focused desktop software for the housekeeping every file system and photo library eventually needs — duplicates, near-duplicates, and the copies you forgot you kept.</p>
+    </div>
+  </section>
+
+  <section class="catalog">
+    <div class="wrap">
+      <div class="catalog-heading">
+        <span class="eyebrow">The catalog</span>
+        <span class="rule"></span>
+      </div>
+      <div class="entries">
+        <a class="entry filetwin" href="filetwin.html">
+          <div class="twin-mark"></div>
+          <span class="tag">Files &amp; documents</span>
+          <h2>FileTwin</h2>
+          <p class="pitch">Finds exact duplicate files across every folder and drive you point it at — plus files with the same name but slightly different content, like a letter saved twice with a different sign-off.</p>
+          <span class="goto">View FileTwin →</span>
+        </a>
+        <a class="entry photochecker" href="photochecker.html">
+          <div class="twin-mark"></div>
+          <span class="tag">Photo libraries</span>
+          <h2>PhotoChecker</h2>
+          <p class="pitch">Finds duplicate and near-duplicate photos, flags blurry or low-quality shots, and checks for red-eye — with an optional AI second opinion where it matters most.</p>
+          <span class="goto">View PhotoChecker →</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="principle wrap">
+    <h2>We recommend. You decide.</h2>
+    <div>
+      <p>Neither tool deletes anything on its own. Every scan ends with a recommendation — which copy looks like the original, which one is sharper, which file is safe to let go of — and you choose what actually happens. Removed files go to the Recycle Bin by default, never straight to permanent deletion.</p>
+      <p>Both apps are free to try on real folders — up to 20 files per scan, with no limit on how many scans you run. A one-time license removes that cap.</p>
+    </div>
+  </section>
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <p>Bremer Core</p>
+    <nav class="legal-links">
+      <a href="privacy.html">Privacy</a>
+      <a href="terms.html">Terms</a>
+      <a href="refund.html">Refunds</a>
+    </nav>
+    <p><a href="mailto:hello@bremercore.com">hello@bremercore.com</a></p>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    var root = document.documentElement;
+    var btn = document.getElementById("theme-toggle");
+
+    function effectiveTheme() {
+      var attr = root.getAttribute("data-theme");
+      if (attr === "dark" || attr === "light") return attr;
+      return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    }
+    function render() {
+      var current = effectiveTheme();
+      // Label/aria describe what clicking will switch TO, not the current state.
+      var next = current === "dark" ? "Light" : "Dark";
+      btn.textContent = next;
+      btn.setAttribute("aria-label", "Switch to " + next.toLowerCase() + " theme");
+    }
+    btn.addEventListener("click", function () {
+      var next = effectiveTheme() === "dark" ? "light" : "dark";
+      root.setAttribute("data-theme", next);
+      localStorage.setItem("bremercore-theme", next);
+      render();
+    });
+    render();
+  })();
+</script>
+
+</body>
+</html>
