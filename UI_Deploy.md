@@ -22,23 +22,34 @@ Do the API deploy first if you haven't — one step below needs its live URL.
   for the website itself, but handled in the same DNS session.)*
 - [x] Update `API_BASE_URL` in `filetwin.html` and `photochecker.html`
   (used by the suggestion-form `fetch()` calls) to the live API URL,
-  `https://duplicateandphoto-agent.onrender.com`. *(edited 2026-08-12, not
-  yet committed/pushed — see below)*
-- [ ] In the GitHub repo (`wbremer65/BremerCore-Website`) → **Settings →
-  Pages**:
-  - Source: "Deploy from a branch" → `main` / `(root)`.
-  - Confirm the custom domain field shows `bremercore.com` (should
-    auto-populate from the committed `CNAME` file — verify it actually did).
-- [ ] Once DNS has propagated and GitHub finishes issuing the certificate,
-  enable **"Enforce HTTPS"** in that same Pages settings page. No need to
-  buy an SSL certificate — GitHub Pages issues one automatically via Let's
-  Encrypt once the custom domain is verified.
-- [ ] Before pointing Lemon Squeezy's store review at the live site,
-  confirm the two placeholders flagged inline on the legal pages are
-  finalized:
-  - 14-day refund window (`refund.html`)
-  - Governing-law jurisdiction, currently South Africa (`terms.html`)
-- [ ] Visit `https://bremercore.com` and `https://www.bremercore.com` once
-  HTTPS is enforced — confirm both load, and that the suggestion form on
-  `filetwin.html`/`photochecker.html` submits successfully against the
-  live API (not a CORS/404 error from a stale `localhost` URL).
+  `https://duplicateandphoto-agent.onrender.com`. *(done 2026-08-12,
+  committed `abb55ca`, pushed — confirmed live on the real site.)*
+- [x] In the GitHub repo (`wbremer65/BremerCore-Website`) → **Settings →
+  Pages**: Source = "Deploy from a branch" → `main` / `(root)`, custom
+  domain = `bremercore.com`. *(done 2026-08-12 — this was the missing
+  piece; DNS alone doesn't register the domain with GitHub Pages, it had
+  to be set/saved explicitly here too.)*
+- [x] Enabled **"Enforce HTTPS"**. *(done 2026-08-12.)* Confirmed live:
+  `http://bremercore.com` → `301` redirect to HTTPS, `https://bremercore.com`
+  → `200` with a valid auto-issued Let's Encrypt cert. No certificate
+  purchase was needed anywhere in this stack.
+  - `https://www.bremercore.com` not resolving yet as of 2026-08-12 —
+    apex cert issued fine, `www` variant's cert appears to still be
+    provisioning on GitHub's side. Recheck later rather than re-touch any
+    settings; nothing on our end looks misconfigured.
+- [x] 14-day refund window confirmed (`refund.html`) — placeholder
+  callout removed. *(done 2026-08-12)*
+- [ ] Governing-law jurisdiction, currently South Africa (`terms.html`)
+  — still needs Werner's confirmation with his accountant/legal advisor,
+  same open item as the VAT question.
+- [x] **Bonus fix while checking this**: `hello@bremercore.com` (used
+  13 times across 6 pages) was never actually live — set up `refund@`
+  and `support@` as real forwarders instead (removed the unused `admin@`
+  too, since it's a common spam target). Updated every page: refund-page
+  contact links → `refund@bremercore.com`, everything else (privacy/terms
+  questions, launch notifications, footers) → `support@bremercore.com`.
+  *(done 2026-08-12)*
+- [x] Confirmed the live site actually serves the updated code: fetched
+  `https://bremercore.com/filetwin.html` and verified `API_BASE_URL`
+  matches the deployed API, not a stale `localhost` value. *(done
+  2026-08-12)* Re-check `www.bremercore.com` once its cert is ready.
